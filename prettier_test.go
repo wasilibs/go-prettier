@@ -15,54 +15,54 @@ import (
 //go:embed testdata/in
 var testFiles embed.FS
 
-//go:embed testdata/out
-var outFiles embed.FS
+//go:embed testdata/exp
+var expFiles embed.FS
 
-//go:embed testdata/outtabwidth4
-var outFilesTabWidth4 embed.FS
+//go:embed testdata/exptabwidth4
+var expFilesTabWidth4 embed.FS
 
 func TestRun(t *testing.T) {
 	t.Parallel()
 
 	testFiles, _ := fs.Sub(testFiles, "testdata/in")
-	outFiles, _ := fs.Sub(outFiles, "testdata/out")
-	outFilesTabWidth4, _ := fs.Sub(outFilesTabWidth4, "testdata/outtabwidth4")
+	expFiles, _ := fs.Sub(expFiles, "testdata/exp")
+	expFilesTabWidth4, _ := fs.Sub(expFilesTabWidth4, "testdata/exptabwidth4")
 
 	tests := []struct {
 		name  string
 		args  runner.RunArgs
-		outFS fs.FS
+		expFS fs.FS
 	}{
 		{
 			name: "no config, write",
 			args: runner.RunArgs{
 				Write: true,
 			},
-			outFS: outFiles,
+			expFS: expFiles,
 		},
 		{
 			name: "json config, write",
 			args: runner.RunArgs{
 				Write:  true,
-				Config: filepath.Join("testdata", ".prettierrc"),
+				Config: filepath.Join("testdata", "config", ".prettierrc"),
 			},
-			outFS: outFilesTabWidth4,
+			expFS: expFilesTabWidth4,
 		},
 		{
 			name: "yaml config, write",
 			args: runner.RunArgs{
 				Write:  true,
-				Config: filepath.Join("testdata", "prettierrc.yaml"),
+				Config: filepath.Join("testdata", "config", "prettierrc.yaml"),
 			},
-			outFS: outFilesTabWidth4,
+			expFS: expFilesTabWidth4,
 		},
 		{
 			name: "toml config, write",
 			args: runner.RunArgs{
 				Write:  true,
-				Config: filepath.Join("testdata", "prettierrc.toml"),
+				Config: filepath.Join("testdata", "config", "prettierrc.toml"),
 			},
-			outFS: outFilesTabWidth4,
+			expFS: expFilesTabWidth4,
 		},
 	}
 
@@ -95,7 +95,7 @@ func TestRun(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if err := fs.WalkDir(tc.outFS, ".", func(path string, d fs.DirEntry, err error) error {
+			if err := fs.WalkDir(tc.expFS, ".", func(path string, d fs.DirEntry, err error) error {
 				if err != nil {
 					return err
 				}
@@ -109,7 +109,7 @@ func TestRun(t *testing.T) {
 					return fmt.Errorf("failed to read from temp dir: %w", err)
 				}
 
-				want, _ := fs.ReadFile(tc.outFS, path)
+				want, _ := fs.ReadFile(tc.expFS, path)
 				if string(got) != string(want) {
 					t.Errorf("%s - got: %s, want: %s", path, got, want)
 				}
