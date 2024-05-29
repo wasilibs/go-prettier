@@ -15,18 +15,18 @@ import (
 //go:embed testdata/in
 var testFiles embed.FS
 
-//go:embed testdata/out
-var outFiles embed.FS
+//go:embed testdata/exp
+var expFiles embed.FS
 
-//go:embed testdata/outtabwidth4
-var outFilesTabWidth4 embed.FS
+//go:embed testdata/exptabwidth4
+var expFilesTabWidth4 embed.FS
 
 func TestRun(t *testing.T) {
 	t.Parallel()
 
 	testFiles, _ := fs.Sub(testFiles, "testdata/in")
-	outFiles, _ := fs.Sub(outFiles, "testdata/out")
-	outFilesTabWidth4, _ := fs.Sub(outFilesTabWidth4, "testdata/outtabwidth4")
+	expFiles, _ := fs.Sub(expFiles, "testdata/out")
+	expFilesTabWidth4, _ := fs.Sub(expFilesTabWidth4, "testdata/outtabwidth4")
 
 	tests := []struct {
 		name  string
@@ -38,7 +38,7 @@ func TestRun(t *testing.T) {
 			args: runner.RunArgs{
 				Write: true,
 			},
-			outFS: outFiles,
+			outFS: expFiles,
 		},
 		{
 			name: "json config, write",
@@ -46,7 +46,7 @@ func TestRun(t *testing.T) {
 				Write:  true,
 				Config: filepath.Join("testdata", ".prettierrc"),
 			},
-			outFS: outFilesTabWidth4,
+			outFS: expFilesTabWidth4,
 		},
 		{
 			name: "yaml config, write",
@@ -54,7 +54,7 @@ func TestRun(t *testing.T) {
 				Write:  true,
 				Config: filepath.Join("testdata", "prettierrc.yaml"),
 			},
-			outFS: outFilesTabWidth4,
+			outFS: expFilesTabWidth4,
 		},
 		{
 			name: "toml config, write",
@@ -62,7 +62,7 @@ func TestRun(t *testing.T) {
 				Write:  true,
 				Config: filepath.Join("testdata", "prettierrc.toml"),
 			},
-			outFS: outFilesTabWidth4,
+			outFS: expFilesTabWidth4,
 		},
 	}
 
