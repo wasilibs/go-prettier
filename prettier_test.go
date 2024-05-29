@@ -44,7 +44,7 @@ func TestRun(t *testing.T) {
 			name: "json config, write",
 			args: runner.RunArgs{
 				Write:  true,
-				Config: filepath.Join("testdata", ".prettierrc"),
+				Config: filepath.Join("testdata", "config", ".prettierrc"),
 			},
 			outFS: expFilesTabWidth4,
 		},
@@ -52,7 +52,7 @@ func TestRun(t *testing.T) {
 			name: "yaml config, write",
 			args: runner.RunArgs{
 				Write:  true,
-				Config: filepath.Join("testdata", "prettierrc.yaml"),
+				Config: filepath.Join("testdata", "config", "prettierrc.yaml"),
 			},
 			outFS: expFilesTabWidth4,
 		},
@@ -60,7 +60,7 @@ func TestRun(t *testing.T) {
 			name: "toml config, write",
 			args: runner.RunArgs{
 				Write:  true,
-				Config: filepath.Join("testdata", "prettierrc.toml"),
+				Config: filepath.Join("testdata", "config", "prettierrc.toml"),
 			},
 			outFS: expFilesTabWidth4,
 		},
