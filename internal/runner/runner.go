@@ -62,6 +62,7 @@ type Runner struct {
 }
 
 type RunArgs struct {
+	Cwd                       string
 	Patterns                  []string
 	Config                    string
 	NoConfig                  bool
@@ -73,7 +74,7 @@ type RunArgs struct {
 }
 
 func (r *Runner) Run(ctx context.Context, args RunArgs) error {
-	eCfgPath := findConfigFile(".editorconfig")
+	eCfgPath := findConfigFile(args.Cwd, ".editorconfig")
 	var eCfg *editorconfig.Editorconfig
 
 	// We use an untyped map for prettier config to allow piping through user config
@@ -84,7 +85,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 		f, err := os.Open(eCfgPath)
 		// Ignore editors for best-effort features like editorconfig loading.
 		if err == nil {
-			if c, err := editorconfig.Parse(f); err != nil {
+			if c, err := editorconfig.Parse(f); err == nil {
 				eCfg = c
 			}
 		}
@@ -101,7 +102,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 		// Do nothing
 	default:
 		for _, name := range []string{".prettierrc", ".prettierrc.json", ".prettierrc.yaml", ".prettierrc.yml", ".prettierrc.toml"} {
-			if p := findConfigFile(name); p != "" {
+			if p := findConfigFile(args.Cwd, name); p != "" {
 				cfg, err := loadConfigFile(ctx, p)
 				if err != nil {
 					return err
@@ -151,7 +152,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 	mergedCfg := map[string]any{}
 	if eCfg != nil {
 		def, err := eCfg.GetDefinitionForFilename(path.filePath)
-		if err != nil {
+		if err == nil {
 			fillEditorConfig(def, mergedCfg)
 		}
 	}
@@ -220,8 +221,8 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 	return nil
 }
 
-func findConfigFile(name string) string {
-	dir, err := filepath.Abs(".")
+func findConfigFile(cwd string, name string) string {
+	dir, err := filepath.Abs(cwd)
 	if err != nil {
 		return ""
 	}

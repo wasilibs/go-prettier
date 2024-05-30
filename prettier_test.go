@@ -21,6 +21,18 @@ var expFiles embed.FS
 //go:embed testdata/exptabwidth4
 var expFilesTabWidth4 embed.FS
 
+//go:embed testdata/config/.prettierrc
+var prettierrc []byte
+
+//go:embed testdata/config/prettierrc.yaml
+var prettierrcYAML []byte
+
+//go:embed testdata/config/prettierrc.toml
+var prettierrcTOML []byte
+
+//go:embed testdata/config/.editorconfig
+var editorconfig []byte
+
 func TestRun(t *testing.T) {
 	t.Parallel()
 
@@ -37,31 +49,52 @@ func TestRun(t *testing.T) {
 		{
 			name: "no config, write",
 			args: runner.RunArgs{
-				Write: true,
+				Patterns: []string{"."},
+				Write:    true,
 			},
 			expFS: expFiles,
 		},
 		{
 			name: "json config, write",
+			prepare: func(dir string) error {
+				return os.WriteFile(filepath.Join(dir, ".prettierrc"), prettierrc, 0o644)
+			},
 			args: runner.RunArgs{
-				Write:  true,
-				Config: filepath.Join("testdata", "config", ".prettierrc"),
+				Patterns: []string{"."},
+				Write:    true,
 			},
 			expFS: expFilesTabWidth4,
 		},
 		{
 			name: "yaml config, write",
+			prepare: func(dir string) error {
+				return os.WriteFile(filepath.Join(dir, ".prettierrc.yaml"), prettierrcYAML, 0o644)
+			},
 			args: runner.RunArgs{
-				Write:  true,
-				Config: filepath.Join("testdata", "config", "prettierrc.yaml"),
+				Patterns: []string{"."},
+				Write:    true,
 			},
 			expFS: expFilesTabWidth4,
 		},
 		{
 			name: "toml config, write",
+			prepare: func(dir string) error {
+				return os.WriteFile(filepath.Join(dir, ".prettierrc.toml"), prettierrcTOML, 0o644)
+			},
 			args: runner.RunArgs{
-				Write:  true,
-				Config: filepath.Join("testdata", "config", "prettierrc.toml"),
+				Patterns: []string{"."},
+				Write:    true,
+			},
+			expFS: expFilesTabWidth4,
+		},
+		{
+			name: "editorconfig, write",
+			prepare: func(dir string) error {
+				return os.WriteFile(filepath.Join(dir, ".editorconfig"), editorconfig, 0o644)
+			},
+			args: runner.RunArgs{
+				Patterns: []string{"."},
+				Write:    true,
 			},
 			expFS: expFilesTabWidth4,
 		},
@@ -97,7 +130,7 @@ func TestRun(t *testing.T) {
 			}
 
 			args := tc.args
-			args.Patterns = append(args.Patterns, dir)
+			args.Cwd = dir
 			if err := r.Run(context.Background(), args); err != nil {
 				t.Fatal(err)
 			}

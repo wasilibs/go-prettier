@@ -26,6 +26,7 @@ func main() {
 
 	flag.Parse()
 
+	args.Cwd = "."
 	args.Patterns = flag.Args()
 
 	if len(ignorePaths) == 0 {
