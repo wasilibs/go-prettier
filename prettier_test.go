@@ -21,9 +21,6 @@ var expFiles embed.FS
 //go:embed testdata/exptabwidth4
 var expFilesTabWidth4 embed.FS
 
-//go:embed testdata/config/.editorconfig
-var editorconfig []byte
-
 func TestRun(t *testing.T) {
 	t.Parallel()
 
