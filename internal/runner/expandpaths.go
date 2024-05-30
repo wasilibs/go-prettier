@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io/fs"
@@ -35,34 +34,21 @@ type expandedPattern struct {
 	path     string
 }
 
-func expandPatterns(ctx context.Context, args RunArgs, root string) []expandedPath {
+func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 	var res []expandedPath
 
 	var expanded []expandedPattern
 
-	ignoreFile := `
+	customIgnore := `
 .git
 .sl
 .svn
 .hg
 `
 	if !args.WithNodeModules {
-		ignoreFile += `
+		customIgnore += `
 node_modules
 `
-	}
-
-	for _, p := range args.IgnorePaths {
-		f, err := os.Open(filepath.Join(root, p))
-		if err != nil {
-			continue
-		}
-		defer f.Close()
-
-		s := bufio.NewScanner(f)
-		for s.Scan() {
-			ignoreFile += s.Text() + "\n"
-		}
 	}
 
 	for _, pattern := range args.Patterns {
@@ -82,21 +68,61 @@ node_modules
 				expanded = append(expanded, expandedPattern{pathType: pathTypeDir, path: pattern})
 			}
 		case pattern[0] == '!':
-			ignoreFile += filepath.ToSlash(pattern[1:]) + "\n"
+			customIgnore += filepath.ToSlash(pattern[1:]) + "\n"
 		default:
 			expanded = append(expanded, expandedPattern{pathType: pathTypeGlob, path: pattern})
 		}
 	}
 
-	base, _ := filepath.Abs(root)
-	ignore := gitignore.New(strings.NewReader(ignoreFile), base, nil)
+	base, _ := filepath.Abs(".")
+
+	var ignores []gitignore.GitIgnore
+	for _, p := range args.IgnorePaths {
+		// Unlike upstream, we try to match git behavior better by
+		// finding all .gitignore files in the repository. Notably,
+		// this will find the root one when working in a subdirectory.
+		if p == ".gitignore" {
+			dir := base
+			for {
+				ignore, err := gitignore.NewFromFile(filepath.Join(dir, ".gitignore"))
+				if err == nil {
+					ignores = append(ignores, ignore)
+				}
+
+				if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+					break
+				}
+
+				parent := filepath.Dir(dir)
+				if parent == dir || parent == "" {
+					break
+				}
+
+				dir = parent
+			}
+
+			continue
+		}
+
+		ignore, err := gitignore.NewFromFile(p)
+		if err != nil {
+			// Prettier ignores missing ignores
+			continue
+		}
+		ignores = append(ignores, ignore)
+	}
+
+	ignores = append(ignores, gitignore.New(strings.NewReader(customIgnore), base, nil))
 
 	seen := map[string]struct{}{}
+PathsLoop:
 	for _, ep := range expanded {
 		switch ep.pathType {
 		case pathTypeFile:
-			if ignore.Ignore(ep.path) {
-				continue
+			for _, ignore := range ignores {
+				if ignore.Ignore(ep.path) {
+					continue PathsLoop
+				}
 			}
 
 			if _, ok := seen[ep.path]; !ok {
@@ -104,7 +130,7 @@ node_modules
 				seen[ep.path] = struct{}{}
 			}
 		case pathTypeDir:
-			if err := filepath.Walk(ep.path, func(path string, fi os.FileInfo, err error) error {
+			if err := filepath.WalkDir(ep.path, func(path string, d fs.DirEntry, err error) error {
 				if err != nil {
 					return err
 				}
@@ -113,16 +139,23 @@ node_modules
 				if p == base {
 					return nil
 				}
-				if m := ignore.Absolute(p, fi.IsDir()); m != nil && m.Ignore() {
-					return filepath.SkipDir
+				for _, ignore := range ignores {
+					if m := ignore.Absolute(p, d.IsDir()); m != nil && m.Ignore() {
+						if d.IsDir() {
+							return filepath.SkipDir
+						} else {
+							return nil
+						}
+					}
 				}
 
-				if fi.IsDir() {
+				if d.IsDir() {
 					return nil
 				}
 
 				if _, ok := seen[path]; !ok {
 					res = append(res, expandedPath{filePath: path, ignoreUnknown: true})
+					seen[path] = struct{}{}
 				}
 
 				return nil
@@ -136,8 +169,14 @@ node_modules
 				if p == base {
 					return nil
 				}
-				if m := ignore.Absolute(p, d.IsDir()); m != nil && m.Ignore() {
-					return filepath.SkipDir
+				for _, ignore := range ignores {
+					if m := ignore.Absolute(p, d.IsDir()); m != nil && m.Ignore() {
+						if d.IsDir() {
+							return filepath.SkipDir
+						} else {
+							return nil
+						}
+					}
 				}
 
 				if d.IsDir() {

@@ -16,20 +16,20 @@ jobs:
         with:
           go-version-file: go.work
           cache-dependency-path: "**/go.sum"
-      
+
       - uses: pnpm/action-setup@v3
         with:
           package_json_file: buildtools/wasm/package.json
-      
+
       - uses: actions/setup-node@v4
         with:
           cache: pnpm
           cache-dependency-path: buildtools/wasm/pnpm-lock.yaml
-      
+
       - name: Update upstream
         run: pnpm up --latest prettier
         working-directory: buildtools/wasm
-      
+
       - run: git diff --exit-code
         id: check-diff
         continue-on-error: true

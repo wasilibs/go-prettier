@@ -10,6 +10,14 @@ Prettier can format files like YAML and Markdown which are commonly used in Go p
 with IDEs like VSCode. This project is primarily designed for Go, or other non-JS projects, that would like to
 still use prettier to format such non-logic files.
 
+## Behavior differences
+
+- If `.gitignore` is specified as an ignore path (included by default), all `.gitignore` files found searching
+  up to a `.git` directory will be used. Prettier only looks in the current directory. We have changed the
+  behavior since it seems most intuitive for `.gitignore` to be applied in the same way as git. This will
+  generally result in less files to process without changing the result on actual source-controlled files.
+  `.prettierignore` or any other ignore file will only be resolved against the current directory.
+
 ## Limitations
 
 - External plugins are not supported. Currently, only the built-in plugins are included.
@@ -31,7 +39,7 @@ $ go install github.com/wasilibs/go-prettier/cmd/prettier@latest
 To avoid installation entirely, it can be convenient to use `go run`
 
 ```bash
-$ go run github.com/wasilibs/go-prettier/cmd/prettier@latest -o formatted.sql unformatted.sql
+$ go run github.com/wasilibs/go-prettier/cmd/prettier@latest -o formatted.md unformatted.md
 ```
 
 [1]: https://github.com/prettier/prettier
