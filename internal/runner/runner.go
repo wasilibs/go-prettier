@@ -72,7 +72,6 @@ type RunArgs struct {
 }
 
 func (r *Runner) Run(ctx context.Context, args RunArgs) error {
-	var cfgPath string
 
 	pCfg := map[string]any{}
 
@@ -82,7 +81,6 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 		if err != nil {
 			return err
 		}
-		cfgPath = args.Config
 		pCfg = cfg
 	case args.NoConfig:
 		// Do nothing
@@ -93,14 +91,13 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 				if err != nil {
 					return err
 				}
-				cfgPath = p
 				pCfg = cfg
 				break
 			}
 		}
 	}
 
-	paths := expandPatterns(ctx, args, filepath.Dir(cfgPath))
+	paths := expandPatterns(ctx, args)
 
 	if args.Check {
 		fmt.Println("Checking formatting...")
