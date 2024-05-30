@@ -10,37 +10,31 @@ import (
 )
 
 func main() {
-	var check bool
-	var write bool
+	var args runner.RunArgs
 
-	flag.BoolVar(&check, "check", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
-	flag.BoolVar(&check, "c", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
-	flag.BoolVar(&write, "write", false, "Edit files in-place. (Beware!)")
-	flag.BoolVar(&write, "w", false, "Edit files in-place. (Beware!)")
+	flag.BoolVar(&args.Check, "check", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
+	flag.BoolVar(&args.Check, "c", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
+	flag.BoolVar(&args.Write, "write", false, "Edit files in-place. (Beware!)")
+	flag.BoolVar(&args.Write, "w", false, "Edit files in-place. (Beware!)")
 
 	var ignorePaths sliceFlag
 	flag.Var(&ignorePaths, "ignore-path", "Path to a file with patterns describing files to ignore.\nMultiple values are accepted.\nDefaults to [.gitignore, .prettierignore].")
 
-	noConfig := flag.Bool("no-config", false, "Do not look for a configuration file.")
-	noErrorOnUnmatchedPattern := flag.Bool("no-error-on-unmatched-pattern", false, "Prevent errors when pattern is unmatched.")
-	withNodeModules := flag.Bool("with-node-modules", false, "Process files inside 'node_modules' directory.")
+	flag.BoolVar(&args.NoConfig, "no-config", false, "Do not look for a configuration file.")
+	flag.BoolVar(&args.NoErrorOnUnmatchedPattern, "no-error-on-unmatched-pattern", false, "Prevent errors when pattern is unmatched.")
+	flag.BoolVar(&args.WithNodeModules, "with-node-modules", false, "Process files inside 'node_modules' directory.")
 
 	flag.Parse()
+
+	args.Patterns = flag.Args()
 
 	if len(ignorePaths) == 0 {
 		ignorePaths = append(ignorePaths, ".gitignore", ".prettierignore")
 	}
+	args.IgnorePaths = ignorePaths
 
 	r := runner.NewRunner()
-	if err := r.Run(context.Background(), runner.RunArgs{
-		Patterns:                  flag.Args(),
-		Check:                     check,
-		Write:                     write,
-		IgnorePaths:               ignorePaths,
-		NoConfig:                  *noConfig,
-		NoErrorOnUnmatchedPattern: *noErrorOnUnmatchedPattern,
-		WithNodeModules:           *withNodeModules,
-	}); err != nil {
+	if err := r.Run(context.Background(), args); err != nil {
 		// Runner handles logging so we just need to set error code.
 		os.Exit(1)
 	}
