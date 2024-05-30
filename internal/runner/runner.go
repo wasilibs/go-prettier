@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	"github.com/BurntSushi/toml"
+	"github.com/editorconfig/editorconfig-core-go/v2"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	"github.com/tetratelabs/wazero/sys"
@@ -72,8 +73,22 @@ type RunArgs struct {
 }
 
 func (r *Runner) Run(ctx context.Context, args RunArgs) error {
+	eCfgPath := findConfigFile(".editorconfig")
+	var eCfg *editorconfig.Editorconfig
 
+	// We use an untyped map for prettier config to allow piping through user config
+	// without needing to recognizing every option.
 	pCfg := map[string]any{}
+
+	if eCfgPath != "" {
+		f, err := os.Open(eCfgPath)
+		// Ignore editors for best-effort features like editorconfig loading.
+		if err == nil {
+			if c, err := editorconfig.Parse(f); err != nil {
+				eCfg = c
+			}
+		}
+	}
 
 	switch {
 	case args.Config != "":
@@ -112,7 +127,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 				slog.ErrorContext(ctx, p.error)
 				return errors.New(p.error)
 			}
-			err := r.format(ctx, p, maps.Clone(pCfg), args.Check, args.Write)
+			err := r.format(ctx, p, eCfg, pCfg, args.Check, args.Write)
 			if err == errCheckFailed {
 				numCheckFailed.Add(1)
 			}
@@ -132,9 +147,19 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 	return err
 }
 
-func (r *Runner) format(ctx context.Context, path expandedPath, pCfg map[string]any, check bool, write bool) error {
-	pCfg["filepath"] = path.filePath
-	pCfgBytes, err := json.Marshal(pCfg)
+func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, pCfg map[string]any, check bool, write bool) error {
+	mergedCfg := map[string]any{}
+	if eCfg != nil {
+		def, err := eCfg.GetDefinitionForFilename(path.filePath)
+		if err != nil {
+			fillEditorConfig(def, mergedCfg)
+		}
+	}
+
+	maps.Copy(mergedCfg, pCfg)
+
+	mergedCfg["filepath"] = path.filePath
+	pCfgBytes, err := json.Marshal(mergedCfg)
 	if err != nil {
 		// Programming bug
 		panic(err)

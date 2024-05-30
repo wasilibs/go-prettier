@@ -21,6 +21,9 @@ var expFiles embed.FS
 //go:embed testdata/exptabwidth4
 var expFilesTabWidth4 embed.FS
 
+//go:embed testdata/config/.editorconfig
+var editorconfig []byte
+
 func TestRun(t *testing.T) {
 	t.Parallel()
 
@@ -29,9 +32,10 @@ func TestRun(t *testing.T) {
 	expFilesTabWidth4, _ := fs.Sub(expFilesTabWidth4, "testdata/exptabwidth4")
 
 	tests := []struct {
-		name  string
-		args  runner.RunArgs
-		expFS fs.FS
+		name    string
+		args    runner.RunArgs
+		expFS   fs.FS
+		prepare func(dir string) error
 	}{
 		{
 			name: "no config, write",
@@ -87,6 +91,12 @@ func TestRun(t *testing.T) {
 				return nil
 			}); err != nil {
 				t.Fatal(err)
+			}
+
+			if tc.prepare != nil {
+				if err := tc.prepare(dir); err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			args := tc.args
