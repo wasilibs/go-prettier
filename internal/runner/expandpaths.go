@@ -52,6 +52,7 @@ node_modules
 	}
 
 	for _, pattern := range args.Patterns {
+		pattern = filepath.Join(args.Cwd, pattern)
 		fi, err := os.Lstat(pattern)
 		switch {
 		case err == nil:
@@ -74,7 +75,7 @@ node_modules
 		}
 	}
 
-	base, _ := filepath.Abs(".")
+	base, _ := filepath.Abs(args.Cwd)
 
 	var ignores []gitignore.GitIgnore
 	for _, p := range args.IgnorePaths {
@@ -164,7 +165,7 @@ PathsLoop:
 			}
 		case pathTypeGlob:
 			matched := false
-			if err := doublestar.GlobWalk(os.DirFS("."), ep.path, func(path string, d fs.DirEntry) error {
+			if err := doublestar.GlobWalk(os.DirFS(args.Cwd), ep.path, func(path string, d fs.DirEntry) error {
 				p, _ := filepath.Abs(path)
 				if p == base {
 					return nil
