@@ -155,7 +155,7 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 			matched := false
 			if err := doublestar.GlobWalk(os.DirFS(args.Cwd), ep.path, func(path string, d fs.DirEntry) error {
 				p, _ := filepath.Abs(path)
-				if ignore.Match(filepath.SplitList(p), d.IsDir()) {
+				if ignore.Match(strings.Split(p, string(filepath.Separator)), d.IsDir()) {
 					if d.IsDir() {
 						return filepath.SkipDir
 					} else {
