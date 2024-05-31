@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"maps"
 	"os"
 	"path/filepath"
 	"sync/atomic"
@@ -83,7 +82,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 
 	if eCfgPath != "" {
 		f, err := os.Open(eCfgPath)
-		// Ignore editors for best-effort features like editorconfig loading.
+		// Ignore errors for best-effort features like editorconfig loading.
 		if err == nil {
 			if c, err := editorconfig.Parse(f); err == nil {
 				eCfg = c
@@ -148,7 +147,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 	return err
 }
 
-func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, pCfg map[string]any, check bool, write bool) error {
+func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, userCfg map[string]any, check bool, write bool) error {
 	mergedCfg := map[string]any{}
 	if eCfg != nil {
 		def, err := eCfg.GetDefinitionForFilename(path.filePath)
@@ -157,7 +156,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		}
 	}
 
-	maps.Copy(mergedCfg, pCfg)
+	mergePrettierConfig(mergedCfg, userCfg, path.filePath)
 
 	mergedCfg["filepath"] = path.filePath
 	pCfgBytes, err := json.Marshal(mergedCfg)
