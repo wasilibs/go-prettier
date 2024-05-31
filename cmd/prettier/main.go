@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"log/slog"
+	"math"
 	"os"
 	"strings"
 
@@ -10,6 +13,8 @@ import (
 )
 
 func main() {
+	slog.SetDefault(slog.New(handler{level: slog.LevelInfo}))
+
 	var args runner.RunArgs
 
 	flag.BoolVar(&args.Check, "check", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
@@ -24,7 +29,27 @@ func main() {
 	flag.BoolVar(&args.NoErrorOnUnmatchedPattern, "no-error-on-unmatched-pattern", false, "Prevent errors when pattern is unmatched.")
 	flag.BoolVar(&args.WithNodeModules, "with-node-modules", false, "Process files inside 'node_modules' directory.")
 
+	levelFlg := flag.String("log-level", "log", "<silent|error|warn|log|debug>\nWhat level of logs to report.\nDefaults to log.")
+
 	flag.Parse()
+
+	var level slog.Level
+	switch strings.ToLower(*levelFlg) {
+	case "silent":
+		level = slog.Level(math.MaxInt)
+	case "error":
+		level = slog.LevelError
+	case "warn":
+		level = slog.LevelWarn
+	case "log":
+		level = slog.LevelInfo
+	case "debug":
+		level = slog.LevelDebug
+	default:
+		printInvalidEnumFlagValue("log-level", *levelFlg, "debug", "error", "log", "silent", "warn")
+		os.Exit(1)
+	}
+	slog.SetDefault(slog.New(handler{level: level}))
 
 	args.Cwd = "."
 	args.Patterns = flag.Args()
@@ -50,4 +75,11 @@ func (f *sliceFlag) String() string {
 func (f *sliceFlag) Set(s string) error {
 	*f = append(*f, s)
 	return nil
+}
+
+func printInvalidEnumFlagValue(flag string, value string, choices ...string) {
+	slog.Error(fmt.Sprintf(`Invalid %s value. Expected %s, but received %s.`, colorize(red, "--"+flag), colorize(blue, "one of the following values"), colorize(red, fmt.Sprintf(`"%s"`, value))))
+	for _, choice := range choices {
+		slog.Error("- " + colorize(blue, fmt.Sprintf(`"%s"`, choice)))
+	}
 }
