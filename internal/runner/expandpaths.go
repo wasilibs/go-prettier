@@ -42,7 +42,7 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 
 	base, _ := filepath.Abs(args.Cwd)
 
-	var ignorePatterns []gitignore.Pattern
+	var ignores []gitignore.Matcher
 	for _, p := range args.IgnorePaths {
 		// Unlike upstream, we try to match git behavior better by
 		// finding all .gitignore files in the repository. Notably,
@@ -52,7 +52,7 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 			for {
 				if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
 					if ps, err := gitignore.ReadPatterns(dir); err == nil {
-						ignorePatterns = append(ignorePatterns, ps...)
+						ignores = append(ignores, gitignore.NewMatcher(ps))
 					} else {
 						slog.DebugContext(ctx, fmt.Sprintf("Error loading .gitignore: %v", err))
 					}
@@ -72,16 +72,17 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 
 		abs, _ := filepath.Abs(p)
 		if ps, err := gitignore.ReadIgnoreFile(filepath.Dir(abs), filepath.Base(abs)); err == nil {
-			ignorePatterns = append(ignorePatterns, ps...)
+			ignores = append(ignores, gitignore.NewMatcher(ps))
 		}
 	}
 
-	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".git", nil))
-	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".sl", nil))
-	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".svn", nil))
-	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".hg", nil))
+	var customIgnores []gitignore.Pattern
+	customIgnores = append(customIgnores, gitignore.ParsePattern(".git", nil))
+	customIgnores = append(customIgnores, gitignore.ParsePattern(".sl", nil))
+	customIgnores = append(customIgnores, gitignore.ParsePattern(".svn", nil))
+	customIgnores = append(customIgnores, gitignore.ParsePattern(".hg", nil))
 	if !args.WithNodeModules {
-		ignorePatterns = append(ignorePatterns, gitignore.ParsePattern("node_modules", nil))
+		customIgnores = append(customIgnores, gitignore.ParsePattern("node_modules", nil))
 	}
 
 	for _, pattern := range args.Patterns {
@@ -102,20 +103,19 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 				expanded = append(expanded, expandedPattern{pathType: pathTypeDir, path: pattern})
 			}
 		case pattern[0] == '!':
-			ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(pattern[1:], nil))
+			customIgnores = append(customIgnores, gitignore.ParsePattern(pattern[1:], nil))
 		default:
 			expanded = append(expanded, expandedPattern{pathType: pathTypeGlob, path: pattern})
 		}
 	}
 
-	ignore := gitignore.NewMatcher(ignorePatterns)
+	ignores = append(ignores, gitignore.NewMatcher(customIgnores))
 
 	seen := map[string]struct{}{}
 	for _, ep := range expanded {
 		switch ep.pathType {
 		case pathTypeFile:
-			p, _ := filepath.Abs(ep.path)
-			if ignore.Match(strings.Split(p, string(filepath.Separator)), false) {
+			if ignoreAnyMatch(ep.path, ignores, false) {
 				continue
 			}
 
@@ -129,8 +129,7 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 					return err
 				}
 
-				p, _ := filepath.Abs(path)
-				if ignore.Match(strings.Split(p, string(filepath.Separator)), d.IsDir()) {
+				if ignoreAnyMatch(path, ignores, d.IsDir()) {
 					if d.IsDir() {
 						return filepath.SkipDir
 					} else {
@@ -154,8 +153,7 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 		case pathTypeGlob:
 			matched := false
 			if err := doublestar.GlobWalk(os.DirFS(args.Cwd), ep.path, func(path string, d fs.DirEntry) error {
-				p, _ := filepath.Abs(path)
-				if ignore.Match(strings.Split(p, string(filepath.Separator)), d.IsDir()) {
+				if ignoreAnyMatch(path, ignores, d.IsDir()) {
 					if d.IsDir() {
 						return filepath.SkipDir
 					} else {
@@ -184,4 +182,15 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 	}
 
 	return res
+}
+
+func ignoreAnyMatch(path string, ignores []gitignore.Matcher, isDir bool) bool {
+	path, _ = filepath.Abs(path)
+	parts := strings.Split(path, string(filepath.Separator))
+	for _, ignore := range ignores {
+		if ignore.Match(parts, isDir) {
+			return true
+		}
+	}
+	return false
 }
