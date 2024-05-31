@@ -65,27 +65,31 @@ type RunArgs struct {
 	Patterns                  []string
 	Config                    string
 	NoConfig                  bool
+	NoEditorConfig            bool
 	Check                     bool
 	IgnorePaths               []string
+	IgnoreUnknown             bool
 	Write                     bool
 	WithNodeModules           bool
 	NoErrorOnUnmatchedPattern bool
 }
 
 func (r *Runner) Run(ctx context.Context, args RunArgs) error {
-	eCfgPath := findConfigFile(args.Cwd, ".editorconfig")
 	var eCfg *editorconfig.Editorconfig
 
 	// We use an untyped map for prettier config to allow piping through user config
 	// without needing to recognizing every option.
 	pCfg := map[string]any{}
 
-	if eCfgPath != "" {
-		f, err := os.Open(eCfgPath)
-		// Ignore errors for best-effort features like editorconfig loading.
-		if err == nil {
-			if c, err := editorconfig.Parse(f); err == nil {
-				eCfg = c
+	if !args.NoEditorConfig {
+		eCfgPath := findConfigFile(args.Cwd, ".editorconfig")
+		if eCfgPath != "" {
+			f, err := os.Open(eCfgPath)
+			// Ignore errors for best-effort features like editorconfig loading.
+			if err == nil {
+				if c, err := editorconfig.Parse(f); err == nil {
+					eCfg = c
+				}
 			}
 		}
 	}
@@ -127,7 +131,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 				slog.ErrorContext(ctx, p.error)
 				return errors.New(p.error)
 			}
-			err := r.format(ctx, p, eCfg, pCfg, args.Check, args.Write)
+			err := r.format(ctx, p, eCfg, pCfg, args.Check, args.Write, args.IgnoreUnknown)
 			if err == errCheckFailed {
 				numCheckFailed.Add(1)
 			}
@@ -147,7 +151,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 	return err
 }
 
-func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, userCfg map[string]any, check bool, write bool) error {
+func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, userCfg map[string]any, check bool, write bool, ignoreUnknown bool) error {
 	mergedCfg := map[string]any{}
 	if eCfg != nil {
 		def, err := eCfg.GetDefinitionForFilename(path.filePath)
@@ -195,7 +199,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 	if err != nil {
 		if se, ok := err.(*sys.ExitError); ok {
 			if se.ExitCode() == 10 {
-				if !path.ignoreUnknown {
+				if !ignoreUnknown && !path.ignoreUnknown {
 					slog.WarnContext(ctx, fmt.Sprintf(`No parser could be inferred for file "%s".`, path.filePath))
 				}
 				return nil
