@@ -12,10 +12,46 @@ import (
 	"github.com/wasilibs/go-prettier/internal/runner"
 )
 
+const usage = `
+Usage: prettier [options] [file/dir/glob ...]
+
+By default, output is written to stdout.
+
+Output options:
+
+  -c, --check              Check if the given files are formatted, print a human-friendly summary
+                           message and paths to unformatted files (see also --list-different).
+  -w, --write              Edit files in-place. (Beware!)
+
+Config options:
+
+  --config <path>          Path to a Prettier configuration file (.prettierrc, package.json, prettier.config.js).
+  --no-config              Do not look for a configuration file.
+  --ignore-path <path>     Path to a file with patterns describing files to ignore.
+                           Multiple values are accepted.
+                           Defaults to [.gitignore, .prettierignore].
+  --with-node-modules      Process files inside 'node_modules' directory.
+
+Other options:
+
+  --no-color               Do not colorize error messages.
+  --no-error-on-unmatched-pattern
+                           Prevent errors when pattern is unmatched.
+  -h, --help               Show CLI usage
+  -u, --ignore-unknown     Ignore unknown files.
+  --log-level <silent|error|warn|log|debug>
+                           What level of logs to report.
+                           Defaults to log.
+`
+
 func main() {
 	slog.SetDefault(slog.New(handler{level: slog.LevelInfo}))
 
 	var args runner.RunArgs
+
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "%s\n", strings.TrimSpace(usage))
+	}
 
 	flag.BoolVar(&args.Check, "check", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
 	flag.BoolVar(&args.Check, "c", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")
