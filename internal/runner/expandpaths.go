@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/denormal/go-gitignore"
+
+	"github.com/wasilibs/go-prettier/internal/gitignore"
 )
 
 // https://github.com/prettier/prettier/blob/main/src/cli/expand-patterns.js
@@ -39,16 +40,48 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 
 	var expanded []expandedPattern
 
-	customIgnore := `
-.git
-.sl
-.svn
-.hg
-`
+	base, _ := filepath.Abs(args.Cwd)
+
+	var ignorePatterns []gitignore.Pattern
+	for _, p := range args.IgnorePaths {
+		// Unlike upstream, we try to match git behavior better by
+		// finding all .gitignore files in the repository. Notably,
+		// this will find the root one when working in a subdirectory.
+		if p == ".gitignore" {
+			dir := base
+			for {
+				if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+					if ps, err := gitignore.ReadPatterns(dir); err == nil {
+						ignorePatterns = append(ignorePatterns, ps...)
+					} else {
+						slog.DebugContext(ctx, fmt.Sprintf("Error loading .gitignore: %v", err))
+					}
+					break
+				}
+
+				parent := filepath.Dir(dir)
+				if parent == dir || parent == "" {
+					break
+				}
+
+				dir = parent
+			}
+
+			continue
+		}
+
+		abs, _ := filepath.Abs(p)
+		if ps, err := gitignore.ReadIgnoreFile(filepath.Dir(abs), filepath.Base(abs)); err == nil {
+			ignorePatterns = append(ignorePatterns, ps...)
+		}
+	}
+
+	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".git", nil))
+	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".sl", nil))
+	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".svn", nil))
+	ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(".hg", nil))
 	if !args.WithNodeModules {
-		customIgnore += `
-node_modules
-`
+		ignorePatterns = append(ignorePatterns, gitignore.ParsePattern("node_modules", nil))
 	}
 
 	for _, pattern := range args.Patterns {
@@ -69,61 +102,21 @@ node_modules
 				expanded = append(expanded, expandedPattern{pathType: pathTypeDir, path: pattern})
 			}
 		case pattern[0] == '!':
-			customIgnore += filepath.ToSlash(pattern[1:]) + "\n"
+			ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(pattern[1:], nil))
 		default:
 			expanded = append(expanded, expandedPattern{pathType: pathTypeGlob, path: pattern})
 		}
 	}
 
-	base, _ := filepath.Abs(args.Cwd)
-
-	var ignores []gitignore.GitIgnore
-	for _, p := range args.IgnorePaths {
-		// Unlike upstream, we try to match git behavior better by
-		// finding all .gitignore files in the repository. Notably,
-		// this will find the root one when working in a subdirectory.
-		if p == ".gitignore" {
-			dir := base
-			for {
-				ignore, err := gitignore.NewFromFile(filepath.Join(dir, ".gitignore"))
-				if err == nil {
-					ignores = append(ignores, ignore)
-				}
-
-				if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
-					break
-				}
-
-				parent := filepath.Dir(dir)
-				if parent == dir || parent == "" {
-					break
-				}
-
-				dir = parent
-			}
-
-			continue
-		}
-
-		ignore, err := gitignore.NewFromFile(p)
-		if err != nil {
-			// Prettier ignores missing ignores
-			continue
-		}
-		ignores = append(ignores, ignore)
-	}
-
-	ignores = append(ignores, gitignore.New(strings.NewReader(customIgnore), base, nil))
+	ignore := gitignore.NewMatcher(ignorePatterns)
 
 	seen := map[string]struct{}{}
-PathsLoop:
 	for _, ep := range expanded {
 		switch ep.pathType {
 		case pathTypeFile:
-			for _, ignore := range ignores {
-				if ignore.Ignore(ep.path) {
-					continue PathsLoop
-				}
+			p, _ := filepath.Abs(ep.path)
+			if ignore.Match(strings.Split(p, string(filepath.Separator)), false) {
+				continue
 			}
 
 			if _, ok := seen[ep.path]; !ok {
@@ -137,16 +130,11 @@ PathsLoop:
 				}
 
 				p, _ := filepath.Abs(path)
-				if p == base {
-					return nil
-				}
-				for _, ignore := range ignores {
-					if m := ignore.Absolute(p, d.IsDir()); m != nil && m.Ignore() {
-						if d.IsDir() {
-							return filepath.SkipDir
-						} else {
-							return nil
-						}
+				if ignore.Match(strings.Split(p, string(filepath.Separator)), d.IsDir()) {
+					if d.IsDir() {
+						return filepath.SkipDir
+					} else {
+						return nil
 					}
 				}
 
@@ -167,16 +155,11 @@ PathsLoop:
 			matched := false
 			if err := doublestar.GlobWalk(os.DirFS(args.Cwd), ep.path, func(path string, d fs.DirEntry) error {
 				p, _ := filepath.Abs(path)
-				if p == base {
-					return nil
-				}
-				for _, ignore := range ignores {
-					if m := ignore.Absolute(p, d.IsDir()); m != nil && m.Ignore() {
-						if d.IsDir() {
-							return filepath.SkipDir
-						} else {
-							return nil
-						}
+				if ignore.Match(strings.Split(p, string(filepath.Separator)), d.IsDir()) {
+					if d.IsDir() {
+						return filepath.SkipDir
+					} else {
+						return nil
 					}
 				}
 
