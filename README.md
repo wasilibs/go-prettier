@@ -21,9 +21,13 @@ still use prettier to format such non-logic files.
   can be requested for addition.
 - Caching is not supported.
 - Config must be JSON, YAML, or TOML. JS configs are not supported.
+- Formatting options via CLI flags are not supported. Use a prettier config to make sure it is reflected
+  in IDE integrations.
 - Performance is worse for many files. The intent is to format a few yaml or markdown type files
   in a Go repository but not to replace formatting in a full NodeJS project. It is recommended to specify globs
   for the files that should be formatted rather than relying on auto-detection on a large directory.
+- Other minor features, mostly for editor integration, are not supported. Check the CLI usage for what flags
+  are supported.
 
 ## Installation
 
