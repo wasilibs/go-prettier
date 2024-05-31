@@ -30,12 +30,16 @@ const (
 	white        = 97
 )
 
-func colorize(colorCode int, v string) string {
+func colorize(colorCode int, v string, noColor bool) string {
+	if noColor {
+		return v
+	}
 	return fmt.Sprintf("\033[%sm%s%s", strconv.Itoa(colorCode), v, reset)
 }
 
 type handler struct {
-	level slog.Level
+	level   slog.Level
+	noColor bool
 }
 
 var _ slog.Handler = (*handler)(nil)
@@ -61,7 +65,7 @@ func (h handler) Handle(_ context.Context, r slog.Record) error {
 
 	level := strings.ToLower(r.Level.String())
 	if color != 0 {
-		level = colorize(color, level)
+		level = colorize(color, level, h.noColor)
 	}
 
 	fmt.Fprintf(os.Stderr, "[%s] %s\n", level, r.Message)

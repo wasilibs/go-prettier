@@ -27,6 +27,7 @@ Config options:
 
   --config <path>          Path to a Prettier configuration file (.prettierrc, package.json, prettier.config.js).
   --no-config              Do not look for a configuration file.
+  --no-editorconfig        Don't take .editorconfig into account when parsing configuration.
   --ignore-path <path>     Path to a file with patterns describing files to ignore.
                            Multiple values are accepted.
                            Defaults to [.gitignore, .prettierignore].
@@ -45,8 +46,6 @@ Other options:
 `
 
 func main() {
-	slog.SetDefault(slog.New(handler{level: slog.LevelInfo}))
-
 	var args runner.RunArgs
 
 	flag.Usage = func() {
@@ -61,10 +60,15 @@ func main() {
 	var ignorePaths sliceFlag
 	flag.Var(&ignorePaths, "ignore-path", "Path to a file with patterns describing files to ignore.\nMultiple values are accepted.\nDefaults to [.gitignore, .prettierignore].")
 
+	flag.StringVar(&args.Config, "config", "", "Path to a Prettier configuration file (.prettierrc, .prettierrc.yaml, .prettierrc.toml).")
 	flag.BoolVar(&args.NoConfig, "no-config", false, "Do not look for a configuration file.")
+	flag.BoolVar(&args.NoEditorConfig, "no-editorconfig", false, "Don't take .editorconfig into account when parsing configuration.")
 	flag.BoolVar(&args.NoErrorOnUnmatchedPattern, "no-error-on-unmatched-pattern", false, "Prevent errors when pattern is unmatched.")
 	flag.BoolVar(&args.WithNodeModules, "with-node-modules", false, "Process files inside 'node_modules' directory.")
+	flag.BoolVar(&args.IgnoreUnknown, "ignore-unknown", false, "Ignore unknown files.")
+	flag.BoolVar(&args.IgnoreUnknown, "u", false, "Ignore unknown files.")
 
+	noColor := flag.Bool("no-color", false, "Do not colorize error messages.")
 	levelFlg := flag.String("log-level", "log", "<silent|error|warn|log|debug>\nWhat level of logs to report.\nDefaults to log.")
 
 	flag.Parse()
@@ -82,10 +86,10 @@ func main() {
 	case "debug":
 		level = slog.LevelDebug
 	default:
-		printInvalidEnumFlagValue("log-level", *levelFlg, "debug", "error", "log", "silent", "warn")
+		printInvalidEnumFlagValue("log-level", *levelFlg, *noColor, "debug", "error", "log", "silent", "warn")
 		os.Exit(1)
 	}
-	slog.SetDefault(slog.New(handler{level: level}))
+	slog.SetDefault(slog.New(handler{level: level, noColor: *noColor}))
 
 	args.Cwd = "."
 	args.Patterns = flag.Args()
@@ -113,9 +117,9 @@ func (f *sliceFlag) Set(s string) error {
 	return nil
 }
 
-func printInvalidEnumFlagValue(flag string, value string, choices ...string) {
-	slog.Error(fmt.Sprintf(`Invalid %s value. Expected %s, but received %s.`, colorize(red, "--"+flag), colorize(blue, "one of the following values"), colorize(red, fmt.Sprintf(`"%s"`, value))))
+func printInvalidEnumFlagValue(flag string, value string, noColor bool, choices ...string) {
+	slog.Error(fmt.Sprintf(`Invalid %s value. Expected %s, but received %s.`, colorize(red, "--"+flag, noColor), colorize(blue, "one of the following values", noColor), colorize(red, fmt.Sprintf(`"%s"`, value), noColor)))
 	for _, choice := range choices {
-		slog.Error("- " + colorize(blue, fmt.Sprintf(`"%s"`, choice)))
+		slog.Error("- " + colorize(blue, fmt.Sprintf(`"%s"`, choice), noColor))
 	}
 }
