@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/wasilibs/go-prettier/internal/runner"
 )
 
@@ -108,7 +109,7 @@ func TestRun(t *testing.T) {
 
 			dir := t.TempDir()
 
-			if err := fs.WalkDir(testFiles, ".", func(path string, d fs.DirEntry, err error) error {
+			require.NoError(t, fs.WalkDir(testFiles, ".", func(path string, d fs.DirEntry, err error) error {
 				if d.IsDir() {
 					return nil
 				}
@@ -119,23 +120,17 @@ func TestRun(t *testing.T) {
 				}
 
 				return nil
-			}); err != nil {
-				t.Fatal(err)
-			}
+			}))
 
 			if tc.prepare != nil {
-				if err := tc.prepare(dir); err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, tc.prepare(dir))
 			}
 
 			args := tc.args
 			args.Cwd = dir
-			if err := r.Run(context.Background(), args); err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, r.Run(context.Background(), args))
 
-			if err := fs.WalkDir(tc.expFS, ".", func(path string, d fs.DirEntry, err error) error {
+			require.NoError(t, fs.WalkDir(tc.expFS, ".", func(path string, d fs.DirEntry, err error) error {
 				if err != nil {
 					return err
 				}
@@ -144,20 +139,16 @@ func TestRun(t *testing.T) {
 					return nil
 				}
 
-				got, err := os.ReadFile(filepath.Join(dir, path))
+				have, err := os.ReadFile(filepath.Join(dir, path))
 				if err != nil {
 					return fmt.Errorf("failed to read from temp dir: %w", err)
 				}
 
-				want, _ := fs.ReadFile(tc.expFS, path)
-				if string(got) != string(want) {
-					t.Errorf("%s - got: %s, want: %s", path, got, want)
-				}
+				exp, _ := fs.ReadFile(tc.expFS, path)
+				require.Equal(t, exp, have)
 
 				return nil
-			}); err != nil {
-				t.Fatal(err)
-			}
+			}))
 		})
 	}
 }
