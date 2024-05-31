@@ -17,7 +17,8 @@ still use prettier to format such non-logic files.
   behavior since it seems most intuitive for `.gitignore` to be applied in the same way as git. This will
   generally result in less files to process without changing the result on actual source-controlled files.
   `.prettierignore` or any other ignore file will only be resolved against the current directory.
-- External plugins are not supported. Currently, only the built-in plugins are included.
+- External plugins are not supported. Currently, only the built-in plugins are included. Other popular plugins
+  can be requested for addition.
 - Caching is not supported.
 - Config must be JSON, YAML, or TOML. JS configs are not supported.
 - Performance is worse for many files. The intent is to format a few yaml or markdown type files

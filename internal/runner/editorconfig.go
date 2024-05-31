@@ -25,7 +25,7 @@ func fillEditorConfig(def *editorconfig.Definition, res map[string]any) {
 		if n, err := strconv.Atoi(def.IndentSize); err == nil {
 			res["tabWidth"] = n
 		}
-	case def.TabWidth > 0:
+	case def.Raw["tab_width"] != "":
 		res["tabWidth"] = def.TabWidth
 	}
 
