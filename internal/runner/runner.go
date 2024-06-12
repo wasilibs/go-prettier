@@ -132,7 +132,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 				return errors.New(p.error)
 			}
 			err := r.format(ctx, p, eCfg, pCfg, args.Check, args.Write, args.IgnoreUnknown)
-			if err == errCheckFailed {
+			if errors.Is(err, errCheckFailed) {
 				numCheckFailed.Add(1)
 			}
 			return err
@@ -197,7 +197,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 
 	_, err = r.rt.InstantiateModule(ctx, r.compiled, mCfg)
 	if err != nil {
-		if se, ok := err.(*sys.ExitError); ok {
+		if se, ok := err.(*sys.ExitError); ok { //nolint:errorlint
 			if se.ExitCode() == 10 {
 				if !ignoreUnknown && !path.ignoreUnknown {
 					slog.WarnContext(ctx, fmt.Sprintf(`No parser could be inferred for file "%s".`, path.filePath))

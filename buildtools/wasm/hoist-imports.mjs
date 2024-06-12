@@ -10,7 +10,10 @@ async function run() {
   const others = [];
 
   for await (const line of lines) {
-    if (line.startsWith("import ") && line.endsWith(' "std";')) {
+    if (
+      line.startsWith("import ") &&
+      (line.endsWith(' "std";') || line.endsWith(' "os";'))
+    ) {
       imports.push(line);
     } else {
       others.push(line);

@@ -74,13 +74,13 @@ func (h handler) Handle(_ context.Context, r slog.Record) error {
 }
 
 // WithAttrs implements slog.Handler.
-func (h handler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h handler) WithAttrs([]slog.Attr) slog.Handler {
 	// We don't use attrs in this program.
 	return h
 }
 
 // WithGroup implements slog.Handler.
-func (h handler) WithGroup(name string) slog.Handler {
+func (h handler) WithGroup(string) slog.Handler {
 	// We don't use groups in this program.
 	return h
 }
