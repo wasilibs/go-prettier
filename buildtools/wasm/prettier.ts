@@ -1,3 +1,7 @@
+import "./global.js";
+import "./settimeout.js";
+import "./textcoding.js";
+
 import { format } from "prettier";
 import pluginAcorn from "prettier/plugins/acorn.js";
 import pluginAngular from "prettier/plugins/angular.js";
@@ -11,6 +15,9 @@ import pluginMeriyah from "prettier/plugins/meriyah.js";
 import pluginPostcss from "prettier/plugins/postcss.js";
 import pluginTypescript from "prettier/plugins/typescript.js";
 import pluginYaml from "prettier/plugins/yaml.js";
+
+import pluginSh from "./sh/index.js";
+
 import { exit, err as stderr, in as stdin, out as stdout } from "std";
 
 async function run() {
@@ -34,6 +41,7 @@ async function run() {
         pluginMarkdown,
         pluginMeriyah,
         pluginPostcss,
+        pluginSh,
         pluginTypescript,
         pluginYaml,
       ],

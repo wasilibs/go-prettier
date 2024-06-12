@@ -8,6 +8,7 @@ COPY buildtools/wasm/package.json buildtools/wasm/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY buildtools/wasm/*.mjs ./
 COPY buildtools/wasm/*.ts ./
+COPY buildtools/wasm/sh/ ./sh
 COPY buildtools/wasm/tsconfig.json ./
 RUN pnpm run build
 
@@ -29,7 +30,7 @@ RUN $RANLIB libquickjs.a
 WORKDIR /app
 COPY --from=buildjs /app/dist/prettier.js ./
 RUN qjsc -e prettier.js -o prettier.c
-RUN $CC $CFLAGS -O2 -o prettier-noopt.wasm prettier.c -lquickjs -I/usr/local/include/quickjs -L/quickjs -Wl,--global-base=1024
+RUN $CC $CFLAGS -O2 -o prettier-noopt.wasm prettier.c -lquickjs -I/usr/local/include/quickjs -L/quickjs -Wl,--global-base=1024 -Wl,-lwasi-emulated-signal
 RUN wasm-opt -o prettier.wasm --low-memory-unused --flatten --rereloop --converge -O3 prettier-noopt.wasm
 
 CMD [ "cp", "prettier.wasm", "/out"]

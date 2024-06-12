@@ -3,7 +3,7 @@ package gitignore
 import (
 	"testing"
 
-	. "gopkg.in/check.v1"
+	. "gopkg.in/check.v1" //nolint:revive
 )
 
 func Test(t *testing.T) { TestingT(t) }

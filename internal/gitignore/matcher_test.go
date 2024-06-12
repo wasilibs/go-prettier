@@ -1,7 +1,7 @@
 package gitignore
 
 import (
-	. "gopkg.in/check.v1"
+	. "gopkg.in/check.v1" //nolint:revive
 )
 
 func (s *PatternSuite) TestMatcher_Match(c *C) {

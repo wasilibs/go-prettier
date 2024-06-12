@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"github.com/wasilibs/go-prettier/internal/runner"
 )
 
@@ -110,6 +111,10 @@ func TestRun(t *testing.T) {
 			dir := t.TempDir()
 
 			require.NoError(t, fs.WalkDir(testFiles, ".", func(path string, d fs.DirEntry, err error) error {
+				if err != nil {
+					return err
+				}
+
 				if d.IsDir() {
 					return nil
 				}
@@ -145,7 +150,7 @@ func TestRun(t *testing.T) {
 				}
 
 				exp, _ := fs.ReadFile(tc.expFS, path)
-				require.Equal(t, exp, have)
+				require.Equal(t, string(exp), string(have))
 
 				return nil
 			}))

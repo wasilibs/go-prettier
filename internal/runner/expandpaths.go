@@ -132,9 +132,8 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 				if ignoreAnyMatch(path, ignores, d.IsDir()) {
 					if d.IsDir() {
 						return filepath.SkipDir
-					} else {
-						return nil
 					}
+					return nil
 				}
 
 				if d.IsDir() {
@@ -156,9 +155,8 @@ func expandPatterns(ctx context.Context, args RunArgs) []expandedPath {
 				if ignoreAnyMatch(path, ignores, d.IsDir()) {
 					if d.IsDir() {
 						return filepath.SkipDir
-					} else {
-						return nil
 					}
+					return nil
 				}
 
 				if d.IsDir() {
