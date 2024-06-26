@@ -15,8 +15,8 @@
     "@biomejs/biome": "^1.7.3",
     "@types/quickjs": "github:Gottox/quickjs-dts",
     "esbuild": "^0.21.4",
-    "mvdan-sh": "^0.10.1",
-    "prettier": "3.3.2",
+    "mvdan-sh": "^0.10.0",
+    "prettier": "3.3.1",
     "typescript": "^5.3.3"
   }
 }
