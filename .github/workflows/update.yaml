@@ -1,0 +1,13 @@
+name: "Update Upstream"
+
+on:
+  schedule:
+    - cron: "5 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: wasilibs/actions/.github/workflows/update-node.yaml@f7543d6818fa449e7ea36b5c841ce3bb3f885370
+    with:
+      packages: prettier
+    secrets: inherit
