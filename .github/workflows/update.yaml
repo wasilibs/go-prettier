@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: wasilibs/actions/.github/workflows/update-node.yaml@f7543d6818fa449e7ea36b5c841ce3bb3f885370
+    uses: wasilibs/actions/.github/workflows/update-node.yaml@eeee5d072ee283c12eb68e2c4969012fae3d6dd0
     with:
       packages: prettier
     secrets: inherit
