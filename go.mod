@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/bmatcuk/doublestar/v4 v4.7.1
 	github.com/editorconfig/editorconfig-core-go/v2 v2.6.2
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tetratelabs/wazero v1.8.1
 	golang.org/x/sync v0.9.0
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
