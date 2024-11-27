@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/wasilibs/go-prettier/internal/runner"
+	"github.com/wasilibs/go-prettier/v3/internal/runner"
 )
 
 //go:embed testdata/in

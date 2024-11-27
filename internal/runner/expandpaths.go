@@ -11,7 +11,7 @@ import (
 
 	"github.com/bmatcuk/doublestar/v4"
 
-	"github.com/wasilibs/go-prettier/internal/gitignore"
+	"github.com/wasilibs/go-prettier/v3/internal/gitignore"
 )
 
 // https://github.com/prettier/prettier/blob/main/src/cli/expand-patterns.js

@@ -1,4 +1,4 @@
-module github.com/wasilibs/go-prettier
+module github.com/wasilibs/go-prettier/v3
 
 go 1.22.3
 

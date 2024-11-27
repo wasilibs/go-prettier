@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/wasilibs/go-prettier/internal/runner"
+	"github.com/wasilibs/go-prettier/v3/internal/runner"
 )
 
 const usage = `
