@@ -1,5 +1,5 @@
 # Hello
 
--   World
--   Bear
--   Gopher
+- World
+- Bear
+- Gopher
