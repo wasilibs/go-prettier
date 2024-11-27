@@ -20,7 +20,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
-	"github.com/wasilibs/go-prettier/internal/wasm"
+	"github.com/wasilibs/go-prettier/v3/internal/wasm"
 )
 
 var (
