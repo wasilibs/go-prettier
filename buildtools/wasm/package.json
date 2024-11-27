@@ -12,11 +12,11 @@
   "license": "MIT",
   "packageManager": "pnpm@9.1.2",
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
+    "@biomejs/biome": "^1.9.4",
     "@types/quickjs": "github:Gottox/quickjs-dts",
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.24.0",
     "mvdan-sh": "^0.10.1",
-    "prettier": "3.3.3",
-    "typescript": "^5.5.3"
+    "prettier": "3.4.1",
+    "typescript": "^5.7.2"
   }
 }
