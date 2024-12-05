@@ -16,7 +16,7 @@
     "@types/quickjs": "github:Gottox/quickjs-dts",
     "esbuild": "^0.24.0",
     "mvdan-sh": "^0.10.1",
-    "prettier": "3.4.1",
+    "prettier": "3.4.2",
     "typescript": "^5.7.2"
   }
 }
