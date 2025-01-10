@@ -50,6 +50,8 @@ To avoid installation entirely, it can be convenient to use `go run`
 go run github.com/wasilibs/go-prettier/cmd/prettier@latest -o formatted.md unformatted.md
 ```
 
+_Due to [potential build breakage](https://github.com/golang/go/issues/71192) unrelated to this project, `go tool` is not supported._
+
 [1]: https://github.com/prettier/prettier
 [2]: https://wazero.io/
 [3]: https://bellard.org/quickjs/
