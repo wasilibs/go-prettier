@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	github.com/BurntSushi/toml v1.4.0
-	github.com/bmatcuk/doublestar/v4 v4.8.0
+	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/editorconfig/editorconfig-core-go/v2 v2.6.2
 	github.com/stretchr/testify v1.10.0
 	github.com/tetratelabs/wazero v1.8.2
