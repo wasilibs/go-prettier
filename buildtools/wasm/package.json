@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "mkdir -p dist && bun build --external std --external os --target node prettier.ts | bun run hoist-imports.ts > dist/prettier.js",
+    "build": "mkdir -p dist && esbuild --external:os --external:std --bundle prettier.ts --format=esm | node hoist-imports.mjs > dist/prettier.js",
     "format": "biome check --apply ."
   },
   "keywords": [],
@@ -12,6 +12,7 @@
   "license": "MIT",
   "packageManager": "bun@1.2.2",
   "dependencies": {
+    "esbuild": "^0.24.2",
     "mvdan-sh": "^0.10.1",
     "prettier": "3.4.1"
   },
