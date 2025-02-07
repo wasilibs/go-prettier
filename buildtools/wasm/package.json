@@ -4,19 +4,21 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "mkdir -p dist && esbuild --external:os --external:std --bundle prettier.ts --format=esm | node hoist-imports.mjs > dist/prettier.js",
+    "build": "mkdir -p dist && bun build --external std prettier.ts | bun run hoist-imports.ts > dist/prettier.js",
     "format": "biome check --apply ."
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@9.1.2",
+  "packageManager": "bun@1.2.2",
+  "dependencies": {
+    "mvdan-sh": "^0.10.1",
+    "prettier": "3.4.1"
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/quickjs": "github:Gottox/quickjs-dts",
-    "esbuild": "^0.24.0",
-    "mvdan-sh": "^0.10.1",
-    "prettier": "3.4.2",
+    "@types/node": "^22.13.1",
     "typescript": "^5.7.2"
   }
 }
