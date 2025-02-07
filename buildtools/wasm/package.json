@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "mkdir -p dist && bun build --external std prettier.ts | bun run hoist-imports.ts > dist/prettier.js",
+    "build": "mkdir -p dist && bun build --external std --external os --target node prettier.ts | bun run hoist-imports.ts > dist/prettier.js",
     "format": "biome check --apply ."
   },
   "keywords": [],
