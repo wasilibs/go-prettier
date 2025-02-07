@@ -13,12 +13,12 @@
   "packageManager": "bun@1.2.2",
   "dependencies": {
     "mvdan-sh": "^0.10.1",
-    "prettier": "3.4.1"
+    "prettier": "3.4.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/quickjs": "github:Gottox/quickjs-dts",
     "@types/node": "^22.13.1",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   }
 }

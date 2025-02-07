@@ -4,14 +4,14 @@
     "": {
       "name": "wasm",
       "dependencies": {
-        "mvdan-sh": "^0.10.1",
-        "prettier": "3.4.1",
+        "mvdan-sh": "latest",
+        "prettier": "latest",
       },
       "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
-        "@types/node": "^22.13.1",
+        "@biomejs/biome": "latest",
+        "@types/node": "latest",
         "@types/quickjs": "github:Gottox/quickjs-dts",
-        "typescript": "^5.7.2",
+        "typescript": "latest",
       },
     },
   },
@@ -40,7 +40,7 @@
 
     "mvdan-sh": ["mvdan-sh@0.10.1", "", {}, "sha512-kMbrH0EObaKmK3nVRKUIIya1dpASHIEusM13S4V1ViHFuxuNxCo+arxoa6j/dbV22YBGjl7UKJm9QQKJ2Crzhg=="],
 
-    "prettier": ["prettier@3.4.1", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-G+YdqtITVZmOJje6QkXQWzl3fSfMxFwm1tjTyo9exhkmWSqC4Yhd1+lug++IlR2mvRVAxEDDWYkQdeSztajqgg=="],
+    "prettier": ["prettier@3.4.2", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ=="],
 
     "typescript": ["typescript@5.7.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw=="],
 
