@@ -4,15 +4,15 @@
     "": {
       "name": "wasm",
       "dependencies": {
-        "esbuild": "latest",
-        "mvdan-sh": "latest",
-        "prettier": "latest",
+        "esbuild": "^0.24.2",
+        "mvdan-sh": "^0.10.1",
+        "prettier": "3.4.2",
       },
       "devDependencies": {
-        "@biomejs/biome": "latest",
-        "@types/node": "latest",
+        "@biomejs/biome": "^1.9.4",
+        "@types/node": "^22.13.1",
         "@types/quickjs": "github:Gottox/quickjs-dts",
-        "typescript": "latest",
+        "typescript": "^5.7.3",
       },
     },
   },
