@@ -1,6 +1,6 @@
 module github.com/wasilibs/go-prettier/v3
 
-go 1.22.3
+go 1.23.0
 
 require (
 	github.com/BurntSushi/toml v1.4.0
@@ -18,6 +18,6 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/mod v0.16.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
