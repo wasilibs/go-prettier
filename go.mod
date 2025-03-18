@@ -3,7 +3,7 @@ module github.com/wasilibs/go-prettier/v3
 go 1.23.0
 
 require (
-	github.com/BurntSushi/toml v1.4.0
+	github.com/BurntSushi/toml v1.5.0
 	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/editorconfig/editorconfig-core-go/v2 v2.6.3
 	github.com/stretchr/testify v1.10.0
