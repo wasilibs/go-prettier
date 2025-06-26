@@ -12,8 +12,10 @@ func mergePrettierConfig(mergedCfg map[string]any, userCfg map[string]any, path 
 	var overrides []map[string]any
 	for k, v := range userCfg {
 		if k == "overrides" {
-			overrides = v.([]map[string]any)
-			continue
+			if o, ok := v.([]map[string]any); ok {
+				overrides = o
+				continue
+			}
 		}
 		mergedCfg[k] = v
 	}
@@ -31,7 +33,9 @@ func mergePrettierConfig(mergedCfg map[string]any, userCfg map[string]any, path 
 		}
 
 		if matchAny(patterns, path) {
-			maps.Copy(mergedCfg, o["options"].(map[string]any))
+			if m, ok := o["options"].(map[string]any); ok {
+				maps.Copy(mergedCfg, m)
+			}
 		}
 	}
 }

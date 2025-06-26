@@ -84,7 +84,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 	if !args.NoEditorConfig {
 		eCfgPath := findConfigFile(args.Cwd, ".editorconfig")
 		if eCfgPath != "" {
-			f, err := os.Open(eCfgPath)
+			f, err := os.Open(eCfgPath) //nolint:gosec
 			// Ignore errors for best-effort features like editorconfig loading.
 			if err == nil {
 				if c, err := editorconfig.Parse(f); err == nil {
@@ -175,14 +175,14 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 	if err != nil {
 		slog.WarnContext(ctx, fmt.Sprintf(`Unable to read file "%s"`, path.filePath))
 		slog.WarnContext(ctx, err.Error())
-		return err
+		return fmt.Errorf("runner: stat-ing file: %w", err)
 	}
 
 	in, err := os.ReadFile(path.filePath)
 	if err != nil {
 		slog.WarnContext(ctx, fmt.Sprintf(`Unable to read file "%s"`, path.filePath))
 		slog.WarnContext(ctx, err.Error())
-		return err
+		return fmt.Errorf("runner: reading file: %w", err)
 	}
 
 	mCfg := wazero.NewModuleConfig().
@@ -247,11 +247,11 @@ func findConfigFile(cwd string, name string) string {
 func loadConfigFile(ctx context.Context, path string) (map[string]any, error) {
 	res := map[string]any{}
 
-	pCfgBytes, err := os.ReadFile(path)
+	pCfgBytes, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		slog.WarnContext(ctx, fmt.Sprintf(`Unable to read config file "%s"`, path))
 		slog.WarnContext(ctx, err.Error())
-		return res, err
+		return res, fmt.Errorf("runner: reading config file: %w", err)
 	}
 
 	// YAML is superset of JSON so it should be fine to only use YAML to parse.

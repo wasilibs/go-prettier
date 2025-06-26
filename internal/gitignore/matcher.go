@@ -1,6 +1,6 @@
 package gitignore
 
-// Matcher defines a global multi-pattern matcher for gitignore patterns
+// Matcher defines a global multi-pattern matcher for gitignore patterns.
 type Matcher interface {
 	// Match matches patterns in the order of priorities. As soon as an inclusion or
 	// exclusion is found, not further matching is performed.

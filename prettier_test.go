@@ -1,7 +1,6 @@
 package prettier
 
 import (
-	"context"
 	"embed"
 	"fmt"
 	"io/fs"
@@ -133,7 +132,7 @@ func TestRun(t *testing.T) {
 
 			args := tc.args
 			args.Cwd = dir
-			require.NoError(t, r.Run(context.Background(), args))
+			require.NoError(t, r.Run(t.Context(), args))
 
 			require.NoError(t, fs.WalkDir(tc.expFS, ".", func(path string, d fs.DirEntry, err error) error {
 				if err != nil {

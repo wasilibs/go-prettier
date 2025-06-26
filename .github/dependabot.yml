@@ -1,18 +1,22 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: /
     schedule:
-      interval: "daily"
+      interval: weekly
     groups:
       gha:
         patterns:
           - "*"
 
   - package-ecosystem: gomod
-    directory: /
+    directories:
+      - /
+      - /build
+    allow:
+      - dependency-type: all
     schedule:
-      interval: daily
+      interval: weekly
     groups:
       go:
         patterns:

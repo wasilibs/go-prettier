@@ -1,4 +1,14 @@
+extends: default
+
+ignore: |
+  node_modules
+  out
+  testdata
+
 rules:
+  comments:
+    min-spaces-from-content: 1
   document-start: disable
+  line-length: disable
   truthy:
     check-keys: false

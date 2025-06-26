@@ -2,6 +2,7 @@ package gitignore
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,9 +17,11 @@ const (
 
 // ReadIgnoreFile reads a specific git ignore file.
 func ReadIgnoreFile(path string, ignoreFile string) (ps []Pattern, err error) {
-	f, err := os.Open(filepath.Join(path, ignoreFile))
+	f, err := os.Open(filepath.Join(path, ignoreFile)) //nolint:gosec
 	if err == nil {
-		defer f.Close()
+		defer func() {
+			_ = f.Close()
+		}()
 
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
@@ -28,7 +31,7 @@ func ReadIgnoreFile(path string, ignoreFile string) (ps []Pattern, err error) {
 			}
 		}
 	} else if !os.IsNotExist(err) {
-		return nil, err
+		return nil, fmt.Errorf("gitignore: open file: %w", err)
 	}
 
 	return
