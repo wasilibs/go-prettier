@@ -49,7 +49,7 @@ func main() {
 	var args runner.RunArgs
 
 	flag.Usage = func() {
-		fmt.Fprintln(flag.CommandLine.Output(), strings.TrimSpace(usage))
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), strings.TrimSpace(usage))
 	}
 
 	flag.BoolVar(&args.Check, "check", false, "Check if the given files are formatted, print a human-friendly summary message and paths to unformatted files")

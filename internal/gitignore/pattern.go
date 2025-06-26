@@ -9,11 +9,11 @@ import (
 type MatchResult int
 
 const (
-	// NoMatch defines the no match outcome of a match check
+	// NoMatch defines the no match outcome of a match check.
 	NoMatch MatchResult = iota
-	// Exclude defines an exclusion of a file as a result of a match check
+	// Exclude defines an exclusion of a file as a result of a match check.
 	Exclude
-	// Include defines an explicit inclusion of a file as a result of a match check
+	// Include defines an explicit inclusion of a file as a result of a match check.
 	Include
 )
 
