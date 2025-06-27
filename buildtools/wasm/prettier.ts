@@ -16,6 +16,7 @@ import pluginPostcss from "prettier/plugins/postcss.js";
 import pluginTypescript from "prettier/plugins/typescript.js";
 import pluginYaml from "prettier/plugins/yaml.js";
 
+import pluginGo from "./go/index.js";
 import pluginSh from "./sh/index.js";
 
 import { exit, err as stderr, in as stdin, out as stdout } from "std";
@@ -23,7 +24,9 @@ import { exit, err as stderr, in as stdin, out as stdout } from "std";
 async function run() {
   const config = JSON.parse(scriptArgs[1]);
 
-  const content = stdin.readAsString();
+  const inputStr = stdin.getline();
+  const inputMsg = JSON.parse(inputStr);
+  const content = inputMsg.body;
 
   let response: string;
 
@@ -36,6 +39,7 @@ async function run() {
         pluginBabel,
         pluginEsTree,
         pluginGlimmer,
+        pluginGo,
         pluginHtml,
         pluginGraphQl,
         pluginMarkdown,
@@ -50,11 +54,16 @@ async function run() {
     if (e.name === "UndefinedParserError") {
       exit(10);
     }
-    stderr.printf("%s", e.message);
+    stderr.printf("%s\n", e.message);
     exit(1);
   }
 
-  stdout.puts(response);
+  const outputMsg = {
+    name: "result",
+    body: response,
+  };
+  const outputStr = JSON.stringify(outputMsg);
+  stdout.printf("%s\n", outputStr);
 }
 
 await run();

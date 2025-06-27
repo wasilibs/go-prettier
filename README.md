@@ -16,6 +16,8 @@ External plugins are not supported because the entire bundle must be compiled to
 standard prettier plugins (e.g., JS, YAML, Markdown) along with the following third-party plugins:
 
 - [prettier-plugin-sh][4]: shell, Dockerfile, properties, etc
+- prettier-plugin-go: a custom plugin included in this bundle which formats Go code using `gofmt`. Not intended
+  to be used to format Go source files but will allow snippets in markdown files to be formatted.
 
 ## Behavior differences
 
