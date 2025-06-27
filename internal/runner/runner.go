@@ -203,8 +203,8 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 
 	go func() {
 		defer func() {
-			stdinW.Close()
-			stdoutR.Close()
+			_ = stdinW.Close()
+			_ = stdoutR.Close()
 		}()
 		if err := json.NewEncoder(stdinW).Encode(inMsg); err != nil {
 			panic(fmt.Errorf("runner: encoding input message for prettier: %w", err))
