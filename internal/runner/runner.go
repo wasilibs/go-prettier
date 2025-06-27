@@ -1,12 +1,15 @@
 package runner
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
+	gofmt "go/format"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -151,6 +154,11 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 	return err
 }
 
+type jsonMsg struct {
+	Name string `json:"name"`
+	Body string `json:"body"`
+}
+
 func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, userCfg map[string]any, check bool, write bool, ignoreUnknown bool) error {
 	mergedCfg := map[string]any{}
 	if eCfg != nil {
@@ -169,8 +177,6 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		panic(err)
 	}
 
-	var out bytes.Buffer
-
 	fi, err := os.Stat(path.filePath)
 	if err != nil {
 		slog.WarnContext(ctx, fmt.Sprintf(`Unable to read file "%s"`, path.filePath))
@@ -185,6 +191,59 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		return fmt.Errorf("runner: reading file: %w", err)
 	}
 
+	stdinR, stdinW := io.Pipe()
+	stdoutR, stdoutW := io.Pipe()
+
+	inMsg := jsonMsg{
+		Name: "input",
+		Body: string(in),
+	}
+
+	resChan := make(chan string, 1)
+
+	go func() {
+		defer func() {
+			stdinW.Close()
+			stdoutR.Close()
+		}()
+		if err := json.NewEncoder(stdinW).Encode(inMsg); err != nil {
+			panic(fmt.Errorf("runner: encoding input message for prettier: %w", err))
+		}
+		br := bufio.NewReader(stdoutR)
+		for {
+			line, err := br.ReadString('\n')
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					return
+				}
+				panic(err)
+			}
+			var msg jsonMsg
+			if err := json.Unmarshal([]byte(line), &msg); err != nil {
+				panic(fmt.Errorf("runner: unmarshaling message from prettier: %w", err))
+			}
+			switch msg.Name {
+			case "gofmt-request":
+				// TODO: Consider if err needs to be handled.
+				formatted, err := gofmt.Source([]byte(msg.Body))
+				if err != nil {
+					// This should only apply to an embedded string, treat it as best-effort.
+					formatted = []byte(msg.Body)
+				}
+				msg := jsonMsg{
+					Name: "gofmt-response",
+					Body: string(formatted),
+				}
+				if err := json.NewEncoder(stdinW).Encode(msg); err != nil {
+					panic(fmt.Errorf("runner: encoding gofmt response message for prettier: %w", err))
+				}
+			case "result":
+				resChan <- msg.Body
+				return
+			}
+		}
+	}()
+
 	mCfg := wazero.NewModuleConfig().
 		WithStderr(os.Stderr).
 		WithSysNanosleep().
@@ -192,8 +251,8 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		WithSysWalltime().
 		WithRandSource(rand.Reader).
 		WithArgs("prettier", string(pCfgBytes)).
-		WithStdin(bytes.NewReader(in)).
-		WithStdout(&out)
+		WithStdin(stdinR).
+		WithStdout(stdoutW)
 
 	_, err = r.rt.InstantiateModule(ctx, r.compiled, mCfg)
 	if err != nil {
@@ -208,15 +267,16 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		return fmt.Errorf("runner: failed to run prettier: %w", err)
 	}
 
+	res := <-resChan
 	if write {
-		if err := os.WriteFile(path.filePath, out.Bytes(), fi.Mode()); err != nil {
+		if err := os.WriteFile(path.filePath, []byte(res), fi.Mode()); err != nil {
 			return fmt.Errorf("runner: failed to write file: %w", err)
 		}
 	} else if !check {
-		fmt.Print(out.String())
+		fmt.Print(res)
 	}
 
-	if check && !bytes.Equal(in, out.Bytes()) {
+	if check && !bytes.Equal(in, []byte(res)) {
 		slog.Warn(path.filePath)
 		return errCheckFailed
 	}

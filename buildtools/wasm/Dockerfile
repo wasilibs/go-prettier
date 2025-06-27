@@ -5,6 +5,7 @@ WORKDIR /app
 COPY buildtools/wasm/package.json buildtools/wasm/bun.lock ./
 RUN bun install --frozen-lockfile --production
 COPY buildtools/wasm/*.ts ./
+COPY buildtools/wasm/go/ ./go
 COPY buildtools/wasm/sh/ ./sh
 COPY buildtools/wasm/tsconfig.json ./
 RUN bun run build
