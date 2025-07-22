@@ -206,7 +206,8 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 			_ = stdinW.Close()
 			_ = stdoutR.Close()
 		}()
-		if err := json.NewEncoder(stdinW).Encode(inMsg); err != nil {
+		stdinJW := json.NewEncoder(stdinW)
+		if err := stdinJW.Encode(inMsg); err != nil {
 			panic(fmt.Errorf("runner: encoding input message for prettier: %w", err))
 		}
 		br := bufio.NewReader(stdoutR)
@@ -234,7 +235,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 					Name: "gofmt-response",
 					Body: string(formatted),
 				}
-				if err := json.NewEncoder(stdinW).Encode(msg); err != nil {
+				if err := stdinJW.Encode(msg); err != nil {
 					panic(fmt.Errorf("runner: encoding gofmt response message for prettier: %w", err))
 				}
 			case "result":
@@ -245,14 +246,14 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 	}()
 
 	mCfg := wazero.NewModuleConfig().
-		WithStderr(os.Stderr).
 		WithSysNanosleep().
 		WithSysNanotime().
 		WithSysWalltime().
 		WithRandSource(rand.Reader).
 		WithArgs("prettier", string(pCfgBytes)).
 		WithStdin(stdinR).
-		WithStdout(stdoutW)
+		WithStderr(stdoutW). // Use stderr for communication to avoid buffering challenges
+		WithStdout(os.Stderr)
 
 	_, err = r.rt.InstantiateModule(ctx, r.compiled, mCfg)
 	if err != nil {
