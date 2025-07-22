@@ -54,7 +54,7 @@ async function run() {
     if (e.name === "UndefinedParserError") {
       exit(10);
     }
-    stderr.printf("%s\n", e.message);
+    stdout.printf("%s\n", e.message);
     exit(1);
   }
 
@@ -63,7 +63,7 @@ async function run() {
     body: response,
   };
   const outputStr = JSON.stringify(outputMsg);
-  stdout.printf("%s\n", outputStr);
+  stderr.printf("%s\n", outputStr);
 }
 
 await run();

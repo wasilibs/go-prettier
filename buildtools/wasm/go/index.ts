@@ -1,5 +1,5 @@
 import type { AstPath, Doc, Parser, Plugin, Printer, SupportLanguage } from "prettier";
-import { in as stdin, out as stdout } from "std";
+import { in as stdin, out as stdout, err as stderr } from "std";
 
 type StringNode = {
   body: string;
@@ -40,8 +40,8 @@ const goPrinter: Printer = {
       body: node.body,
     };
     const msgStr = JSON.stringify(msg);
-    stdout.printf("%s\n", msgStr);
-    stdout.flush();
+    stderr.puts(msgStr);
+    stderr.puts("\n");
     const responseStr = stdin.getline();
     const response = JSON.parse(responseStr);
     if (response.name !== "gofmt-response") {
