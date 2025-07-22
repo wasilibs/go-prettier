@@ -67,3 +67,6 @@ async function run() {
 }
 
 await run();
+
+stderr.close();
+stdout.close();
