@@ -39,6 +39,9 @@ standard prettier plugins (e.g., JS, YAML, Markdown) along with the following th
 
 ## Installation
 
+_Due to [potential build breakage](https://github.com/golang/go/issues/71192) unrelated to this project, `go tool` is not supported.
+Most popular CLIs don't support `go tool` so just avoid it._
+
 Precompiled binaries are available in the [releases](https://github.com/wasilibs/go-prettier/releases).
 Alternatively, install the plugin you want using `go install`.
 

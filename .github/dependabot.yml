@@ -11,10 +11,7 @@ updates:
 
   - package-ecosystem: gomod
     directories:
-      - /
-      - /build
-    allow:
-      - dependency-type: all
+      - "*/**"
     schedule:
       interval: weekly
     groups:
