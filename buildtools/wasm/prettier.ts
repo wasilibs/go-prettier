@@ -19,7 +19,7 @@ import pluginYaml from "prettier/plugins/yaml.js";
 import pluginGo from "./go/index.js";
 import pluginSh from "./sh/index.js";
 
-import { exit, err as stderr, in as stdin, out as stdout } from "std";
+import { exit, err as stderr, in as stdin, out as stdout } from "qjs:std";
 
 async function run() {
   const config = JSON.parse(scriptArgs[1]);

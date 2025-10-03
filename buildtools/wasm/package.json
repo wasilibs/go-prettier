@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "mkdir -p dist && esbuild --external:os --external:std --bundle prettier.ts --format=esm | bun run hoist-imports.ts > dist/prettier.js",
+    "build": "mkdir -p dist && esbuild --external:qjs:os --external:qjs:std --bundle prettier.ts --format=esm | bun run hoist-imports.ts > dist/prettier.js",
     "format": "biome check --apply ."
   },
   "keywords": [],
