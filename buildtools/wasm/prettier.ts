@@ -22,7 +22,6 @@ import pluginSh from "./sh/index.js";
 import { exit, err as stderr, in as stdin, out as stdout } from "qjs:std";
 
 async function run() {
-  stdout.puts("running\n");
   const config = JSON.parse(scriptArgs[1]);
 
   const inputStr = stdin.getline();
@@ -68,6 +67,3 @@ async function run() {
 }
 
 await run();
-
-stderr.close();
-stdout.close();
