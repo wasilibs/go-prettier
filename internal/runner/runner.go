@@ -265,7 +265,9 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 				return nil
 			}
 		}
-		return fmt.Errorf("runner: failed to run prettier: %w", err)
+		err = fmt.Errorf("runner: failed to run prettier: %w", err)
+		fmt.Println(err)
+		return err
 	}
 
 	res := <-resChan

@@ -30,8 +30,8 @@ RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DQJS_BUILD_LIBC=ON && cmake --bui
 COPY --from=app /app/dist/prettier.js .
 COPY --from=app /quickjs/build/qjsc .
 
-RUN ./qjsc -e prettier.js
-RUN $CC $CFLAGS -O3 -o prettier-noopt.wasm out.c -L/quickjs/build -lqjs -I/quickjs -Wl,--global-base=1024 -Wl,-lwasi-emulated-signal
+RUN ./qjsc -o prettier.c -S 128m -e prettier.js
+RUN $CC $CFLAGS -g -o prettier-noopt.wasm prettier.c -L/quickjs/build -lqjs -I/quickjs -Wl,--global-base=1024 -Wl,-lwasi-emulated-signal
 
 RUN mv prettier-noopt.wasm prettier.wasm
 #RUN wasm-opt -o prettier.wasm --low-memory-unused --flatten --rereloop --converge -O3 prettier-noopt.wasm

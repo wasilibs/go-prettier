@@ -7,7 +7,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/editorconfig/editorconfig-core-go/v2 v2.6.3
 	github.com/stretchr/testify v1.11.1
-	github.com/tetratelabs/wazero v1.9.0
+	github.com/tetratelabs/wazero v1.9.1-0.20250924151156-996b80304486
 	golang.org/x/sync v0.16.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
 	gopkg.in/yaml.v3 v3.0.1

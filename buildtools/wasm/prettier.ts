@@ -22,11 +22,15 @@ import pluginSh from "./sh/index.js";
 import { exit, err as stderr, in as stdin, out as stdout } from "qjs:std";
 
 async function run() {
+  stdout.printf("running\n");
   const config = JSON.parse(scriptArgs[1]);
 
+  stdout.printf("getting input\n");
   const inputStr = stdin.getline();
+  stdout.printf("got input: %s\n", inputStr);
   const inputMsg = JSON.parse(inputStr);
   const content = inputMsg.body;
+  stdout.printf("got content: %s\n", content);
 
   let response: string;
 
@@ -51,12 +55,14 @@ async function run() {
       ],
     });
   } catch (e: any) {
+    stdout.printf("caught error: %s\n", e);
     if (e.name === "UndefinedParserError") {
       exit(10);
     }
     stdout.printf("%s\n", e.message);
     exit(1);
   }
+  stdout.printf("formatted content: %s\n", response);
 
   const outputMsg = {
     name: "result",
@@ -64,6 +70,11 @@ async function run() {
   };
   const outputStr = JSON.stringify(outputMsg);
   stderr.printf("%s\n", outputStr);
+  stdout.printf("%s\n", outputStr);
 }
 
 await run();
+stdout.printf("done run\n");
+
+stderr.flush();
+stdout.flush();
