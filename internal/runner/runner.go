@@ -18,8 +18,6 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/editorconfig/editorconfig-core-go/v2"
 	"github.com/tetratelabs/wazero"
-	"github.com/tetratelabs/wazero/api"
-	"github.com/tetratelabs/wazero/experimental"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	"github.com/tetratelabs/wazero/sys"
 	"golang.org/x/sync/errgroup"
@@ -36,7 +34,7 @@ var (
 func NewRunner() *Runner {
 	ctx := context.Background()
 
-	rtCfg := wazero.NewRuntimeConfig().WithCoreFeatures(api.CoreFeaturesV2 | experimental.CoreFeaturesThreads)
+	rtCfg := wazero.NewRuntimeConfig()
 	uc, err := os.UserCacheDir()
 	if err == nil {
 		cache, err := wazero.NewCompilationCacheWithDir(filepath.Join(uc, "com.github.wasilibs"))
