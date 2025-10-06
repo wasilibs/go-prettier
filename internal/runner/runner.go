@@ -268,7 +268,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 				return nil
 			}
 		}
-		err = fmt.Errorf("runner: failed to run prettier: %w", err)
+		err = fmt.Errorf("runner: failed to run prettier [%s]: %w", path.filePath, err)
 		fmt.Println(err)
 		return err
 	}
