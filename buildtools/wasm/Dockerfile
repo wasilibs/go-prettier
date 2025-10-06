@@ -32,7 +32,7 @@ COPY --from=app /quickjs/build/qjsc .
 
 RUN ./qjsc -o prettier.c -e prettier.js
 # Make sure LLVM stack size matches qjsc default.
-RUN $CC $CFLAGS -g -o prettier-noopt.wasm prettier.c -L/quickjs/build -lqjs -I/quickjs -Wl,-lwasi-emulated-signal -Wl,-z,stack-size=16777216
+RUN $CC $CFLAGS -g -o prettier-noopt.wasm prettier.c -L/quickjs/build -lqjs -I/quickjs -Wl,-lwasi-emulated-signal -Wl,-z,stack-size=1048576
 
 RUN wasm-opt -o prettier.wasm --low-memory-unused --flatten --rereloop --converge -O3 prettier-noopt.wasm
 
