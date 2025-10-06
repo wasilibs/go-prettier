@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y build-essential binaryen cmake curl
 
 WORKDIR /quickjs
 
-RUN curl -L https://github.com/quickjs-ng/quickjs/archive/76b3b124000886de9422a82e4f9524ec30dc36f0.tar.gz | tar -xz --strip-components=1 -C /quickjs
+RUN curl -L https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.10.1.tar.gz | tar -xz --strip-components=1 -C /quickjs
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target qjsc
 
 WORKDIR /app
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y binaryen curl
 
 WORKDIR /quickjs
 
-RUN curl -L https://github.com/quickjs-ng/quickjs/archive/76b3b124000886de9422a82e4f9524ec30dc36f0.tar.gz | tar -xz --strip-components=1 -C /quickjs
+RUN curl -L https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.10.1.tar.gz | tar -xz --strip-components=1 -C /quickjs
 ENV CMAKE_TOOLCHAIN_FILE=/opt/wasi-sdk/share/cmake/wasi-sdk-p1.cmake
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DQJS_BUILD_LIBC=ON && cmake --build build --target qjs
 
