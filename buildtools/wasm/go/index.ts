@@ -1,5 +1,5 @@
 import type { AstPath, Doc, Parser, Plugin, Printer, SupportLanguage } from "prettier";
-import { in as stdin, out as stdout, err as stderr } from "std";
+import { in as stdin, out as stdout, err as stderr } from "qjs:std";
 
 type StringNode = {
   body: string;
