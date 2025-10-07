@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync/atomic"
 
 	"github.com/BurntSushi/toml"
@@ -128,6 +129,7 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 	var numCheckFailed atomic.Uint32
 
 	var g errgroup.Group
+	g.SetLimit(runtime.NumCPU())
 	for _, p := range paths {
 		g.Go(func() error {
 			if p.error != "" {
@@ -256,7 +258,7 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		WithStderr(stdoutW). // Use stderr for communication to avoid buffering challenges
 		WithStdout(os.Stderr)
 
-	_, err = r.rt.InstantiateModule(ctx, r.compiled, mCfg)
+	mod, err := r.rt.InstantiateModule(ctx, r.compiled, mCfg)
 	if err != nil {
 		if se, ok := err.(*sys.ExitError); ok { //nolint:errorlint
 			if se.ExitCode() == 10 {
@@ -270,6 +272,9 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		fmt.Println(err)
 		return err
 	}
+	defer func() {
+		_ = mod.Close(ctx)
+	}()
 
 	res := <-resChan
 	if write {
