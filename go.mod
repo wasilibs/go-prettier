@@ -1,6 +1,6 @@
 module github.com/wasilibs/go-prettier/v3
 
-go 1.24.4
+go 1.24.0
 
 require (
 	github.com/BurntSushi/toml v1.5.0
