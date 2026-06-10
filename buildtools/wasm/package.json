@@ -14,12 +14,12 @@
   "dependencies": {
     "esbuild": "^0.28.0",
     "mvdan-sh": "^0.10.1",
-    "prettier": "3.8.3"
+    "prettier": "3.8.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@types/quickjs": "github:Gottox/quickjs-dts",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "typescript": "^6.0.3"
   }
 }
