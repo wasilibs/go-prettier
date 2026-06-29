@@ -9,7 +9,6 @@
     "recommendations": ["esbenp.prettier-vscode"]
   },
   "settings": {
-    "editor.tabSize": 2,
     "[github-actions-workflow]": {
       "editor.formatOnSave": true,
       "editor.defaultFormatter": "esbenp.prettier-vscode"

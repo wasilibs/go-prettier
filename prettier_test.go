@@ -1,11 +1,14 @@
 package prettier
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -155,4 +158,17 @@ func TestRun(t *testing.T) {
 			}))
 		})
 	}
+}
+
+func TestRunStdin(t *testing.T) {
+	t.Parallel()
+
+	cmd := exec.Command("go", "run", "./cmd/prettier", "--no-config", "--no-editorconfig", "--stdin-filepath=_.json")
+	cmd.Stdin = strings.NewReader(`{"a":1,"b":[1,2,3]}`)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	require.NoError(t, cmd.Run(), "stderr: %s", stderr.String())
+	require.Equal(t, "{ \"a\": 1, \"b\": [1, 2, 3] }\n", stdout.String()) //nolint:testifylint // exact formatting, not JSON equality
 }
