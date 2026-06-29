@@ -76,6 +76,7 @@ type RunArgs struct {
 	Write                     bool
 	WithNodeModules           bool
 	NoErrorOnUnmatchedPattern bool
+	StdinFilepath             string
 }
 
 func (r *Runner) Run(ctx context.Context, args RunArgs) error {
@@ -120,6 +121,27 @@ func (r *Runner) Run(ctx context.Context, args RunArgs) error {
 		}
 	}
 
+	if args.StdinFilepath != "" {
+		in, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return fmt.Errorf("runner: reading stdin: %w", err)
+		}
+		res, inferred, err := r.formatContent(ctx, in, args.StdinFilepath, eCfg, pCfg)
+		if err != nil {
+			return err
+		}
+		if !inferred {
+			if !args.IgnoreUnknown {
+				slog.WarnContext(ctx, fmt.Sprintf(`No parser could be inferred for file "%s".`, args.StdinFilepath))
+			}
+			// Echo input unchanged so the filter round-trips safely.
+			_, _ = os.Stdout.Write(in)
+			return nil
+		}
+		fmt.Print(res)
+		return nil
+	}
+
 	paths := expandPatterns(ctx, args)
 
 	if args.Check {
@@ -162,23 +184,6 @@ type jsonMsg struct {
 }
 
 func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconfig.Editorconfig, userCfg map[string]any, check bool, write bool, ignoreUnknown bool) error {
-	mergedCfg := map[string]any{}
-	if eCfg != nil {
-		def, err := eCfg.GetDefinitionForFilename(path.filePath)
-		if err == nil {
-			fillEditorConfig(def, mergedCfg)
-		}
-	}
-
-	mergePrettierConfig(mergedCfg, userCfg, path.filePath)
-
-	mergedCfg["filepath"] = path.filePath
-	pCfgBytes, err := json.Marshal(mergedCfg)
-	if err != nil {
-		// Programming bug
-		panic(err)
-	}
-
 	fi, err := os.Stat(path.filePath)
 	if err != nil {
 		slog.WarnContext(ctx, fmt.Sprintf(`Unable to read file "%s"`, path.filePath))
@@ -191,6 +196,51 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 		slog.WarnContext(ctx, fmt.Sprintf(`Unable to read file "%s"`, path.filePath))
 		slog.WarnContext(ctx, err.Error())
 		return fmt.Errorf("runner: reading file: %w", err)
+	}
+
+	res, inferred, err := r.formatContent(ctx, in, path.filePath, eCfg, userCfg)
+	if err != nil {
+		return err
+	}
+	if !inferred {
+		if !ignoreUnknown && !path.ignoreUnknown {
+			slog.WarnContext(ctx, fmt.Sprintf(`No parser could be inferred for file "%s".`, path.filePath))
+		}
+		return nil
+	}
+
+	if write {
+		if err := os.WriteFile(path.filePath, []byte(res), fi.Mode()); err != nil {
+			return fmt.Errorf("runner: failed to write file: %w", err)
+		}
+	} else if !check {
+		fmt.Print(res)
+	}
+
+	if check && !bytes.Equal(in, []byte(res)) {
+		slog.Warn(path.filePath)
+		return errCheckFailed
+	}
+
+	return nil
+}
+
+func (r *Runner) formatContent(ctx context.Context, in []byte, filePath string, eCfg *editorconfig.Editorconfig, userCfg map[string]any) (res string, inferred bool, err error) {
+	mergedCfg := map[string]any{}
+	if eCfg != nil {
+		def, err := eCfg.GetDefinitionForFilename(filePath)
+		if err == nil {
+			fillEditorConfig(def, mergedCfg)
+		}
+	}
+
+	mergePrettierConfig(mergedCfg, userCfg, filePath)
+
+	mergedCfg["filepath"] = filePath
+	pCfgBytes, err := json.Marshal(mergedCfg)
+	if err != nil {
+		// Programming bug
+		panic(err)
 	}
 
 	stdinR, stdinW := io.Pipe()
@@ -262,35 +312,18 @@ func (r *Runner) format(ctx context.Context, path expandedPath, eCfg *editorconf
 	if err != nil {
 		if se, ok := err.(*sys.ExitError); ok { //nolint:errorlint
 			if se.ExitCode() == 10 {
-				if !ignoreUnknown && !path.ignoreUnknown {
-					slog.WarnContext(ctx, fmt.Sprintf(`No parser could be inferred for file "%s".`, path.filePath))
-				}
-				return nil
+				return "", false, nil
 			}
 		}
-		err = fmt.Errorf("runner: failed to run prettier [%s]: %w", path.filePath, err)
+		err = fmt.Errorf("runner: failed to run prettier [%s]: %w", filePath, err)
 		fmt.Println(err)
-		return err
+		return "", false, err
 	}
 	defer func() {
 		_ = mod.Close(ctx)
 	}()
 
-	res := <-resChan
-	if write {
-		if err := os.WriteFile(path.filePath, []byte(res), fi.Mode()); err != nil {
-			return fmt.Errorf("runner: failed to write file: %w", err)
-		}
-	} else if !check {
-		fmt.Print(res)
-	}
-
-	if check && !bytes.Equal(in, []byte(res)) {
-		slog.Warn(path.filePath)
-		return errCheckFailed
-	}
-
-	return nil
+	return <-resChan, true, nil
 }
 
 func findConfigFile(cwd string, name string) string {

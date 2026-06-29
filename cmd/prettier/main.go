@@ -68,6 +68,8 @@ func main() {
 	flag.BoolVar(&args.IgnoreUnknown, "ignore-unknown", false, "Ignore unknown files.")
 	flag.BoolVar(&args.IgnoreUnknown, "u", false, "Ignore unknown files.")
 
+	flag.StringVar(&args.StdinFilepath, "stdin-filepath", "", "Format stdin and write the result to stdout, using this path to infer the parser.")
+
 	noColor := flag.Bool("no-color", false, "Do not colorize error messages.")
 	levelFlg := flag.String("log-level", "log", "<silent|error|warn|log|debug>\nWhat level of logs to report.\nDefaults to log.")
 
