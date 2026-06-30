@@ -14,7 +14,7 @@
   "dependencies": {
     "esbuild": "^0.28.1",
     "mvdan-sh": "^0.10.1",
-    "prettier": "3.9.3"
+    "prettier": "3.9.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
