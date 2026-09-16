@@ -12,14 +12,14 @@
   "license": "MIT",
   "packageManager": "bun@1.2.2",
   "dependencies": {
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "mvdan-sh": "^0.10.1",
-    "prettier": "3.9.6"
+    "prettier": "3.9.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.4",
+    "@biomejs/biome": "^2.5.14",
     "@types/quickjs": "github:Gottox/quickjs-dts",
-    "@types/node": "^26.1.1",
+    "@types/node": "^22.20.3",
     "typescript": "^7.0.2"
   }
 }
